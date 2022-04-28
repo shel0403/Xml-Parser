@@ -11,29 +11,23 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDate;
+import java.time.Month;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Main {
 
     public static void main(String[] args) {
-        Path xmlSource = Paths.get("/home/shel0403/tmp/persons.xml");
+        Path xmlSource = Paths.get(args[0]);
         XmlParser xmlParser = new DomXmlParser(xmlSource);
-
         Database database = new SqlDatabase();
 
-        List<Person> existedPersons = database.getAll();
-        List<Person> newPersons;
-
         try {
-            newPersons = xmlParser.parse();
-        } catch (ParserConfigurationException | IOException | SAXException e) {
-            throw new RuntimeException(e);
+            database.insertDistinct(xmlParser.parse());
+        } catch (Exception exception) {
+            System.err.println(exception.getMessage());
         }
-
-        existedPersons.addAll(newPersons);
-
-        existedPersons.stream()
-                .distinct()
-                .forEach(System.out::println);
     }
 }

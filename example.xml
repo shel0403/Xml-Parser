@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<root>
+    <name>Persons</name>
+    <persons>
+        <person>
+            <id>id1 (64bit)</id>
+            <firstname>Name1 (string)</firstname>
+            <lastname>LastName1 (string)</lastname>
+            <birthdate>birthDate1 (date)</birthdate>
+        </person>
+        <!-- ... -->
+        <person>
+            <id>id...N (64bit)</id>
+            <firstname>NameN (string)</firstname>
+            <lastname>LastNameN (string)</lastname>
+            <birthdate>birthDateN (Date)</birthdate>
+        </person>
+    </persons>
+</root>

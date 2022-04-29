@@ -1,4 +1,4 @@
-# XML to Postgres converter
+# XML to Postgres
 
 - Reads a XML file;
 - Parse it;

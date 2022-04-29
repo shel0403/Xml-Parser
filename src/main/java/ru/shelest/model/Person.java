@@ -45,15 +45,4 @@ public class Person {
     public int hashCode() {
         return Objects.hash(getId());
     }
-
-    @Override
-    public String toString() {
-        final StringBuffer sb = new StringBuffer("Person{");
-        sb.append("id=").append(id);
-        sb.append(", firstName='").append(firstName).append('\'');
-        sb.append(", lastName='").append(lastName).append('\'');
-        sb.append(", birthDate=").append(birthDate);
-        sb.append('}');
-        return sb.toString();
-    }
 }

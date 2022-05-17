@@ -58,29 +58,45 @@ public class SqlDatabase implements Database {
                 "    first_name VARCHAR,\n" +
                 "    last_name VARCHAR,\n" +
                 "    birth_date DATE\n" +
-                ")";
+                ") ";
 
         try (Statement statement = this.connection.createStatement()) {
+            this.connection.setAutoCommit(false);
+
             statement.executeUpdate(query);
+
+            this.connection.commit();
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            try {
+                this.connection.rollback();
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            }
         }
     }
 
     @Override
     public void insert(Person person) {
         String insertQuery = "INSERT INTO persons (id, first_name, last_name, birth_date) " +
-                "VALUES (?, ?, ?, ?)";
+                "VALUES (?, ?, ?, ?) ";
 
-        try (PreparedStatement statement = connection.prepareStatement(insertQuery)) {
+        try (PreparedStatement statement = this.connection.prepareStatement(insertQuery)) {
+            this.connection.setAutoCommit(false);
+
             statement.setLong(1, person.getId());
             statement.setString(2, person.getFirstName());
             statement.setString(3, person.getLastName());
             statement.setDate(4, Date.valueOf(person.getBirthDate()));
 
             statement.executeUpdate();
+
+            this.connection.commit();
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            try {
+                this.connection.rollback();
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            }
         }
     }
 
@@ -94,7 +110,7 @@ public class SqlDatabase implements Database {
                 .collect(Collectors.toList());
 
         String query = "INSERT INTO persons (id, first_name, last_name, birth_date) " +
-                "VALUES (?, ?, ?, ?)";
+                "VALUES (?, ?, ?, ?) ";
 
         try (PreparedStatement statement = this.connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
             this.connection.setAutoCommit(false);
@@ -109,10 +125,14 @@ public class SqlDatabase implements Database {
             }
 
             statement.executeBatch();
-            connection.commit();
-            this.connection.setAutoCommit(true);
+
+            this.connection.commit();
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            try {
+                this.connection.rollback();
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            }
         }
     }
 
@@ -121,8 +141,12 @@ public class SqlDatabase implements Database {
         List<Person> result = new ArrayList<>();
 
         try (Statement statement = this.connection.createStatement()) {
+            this.connection.setAutoCommit(false);
+
             String query = "SELECT * FROM persons ";
             ResultSet resultSet = statement.executeQuery(query);
+
+            this.connection.commit();
 
             while (resultSet.next()) {
                 long id = resultSet.getLong("id");
@@ -144,12 +168,16 @@ public class SqlDatabase implements Database {
     @Override
     public Person getById(long id) {
         Person result = null;
-        String query = "SELECT * FROM persons WHERE id=?";
+        String query = "SELECT * FROM persons WHERE id=? ";
 
-        try (PreparedStatement statement = connection.prepareStatement(query)) {
+        try (PreparedStatement statement = this.connection.prepareStatement(query)) {
+            this.connection.setAutoCommit(false);
+
             statement.setLong(1, id);
 
             ResultSet resultSet = statement.executeQuery();
+
+            this.connection.commit();
 
             if (resultSet.next()) {
 
@@ -170,11 +198,65 @@ public class SqlDatabase implements Database {
 
     @Override
     public void updateById(long id, Person person) {
+        Person personToUpdate = this.getById(id);
 
+        if (personToUpdate != null) {
+            String query = "UPDATE persons " +
+                    "SET " +
+                    "first_name = ?, " +
+                    "last_name = ?, " +
+                    "birth_date = ? " +
+                    "WHERE id = ? ";
+
+            try (PreparedStatement statement = this.connection.prepareStatement(query)) {
+                this.connection.setAutoCommit(false);
+
+                statement.setString(1, person.getFirstName());
+                statement.setString(2, personToUpdate.getLastName());
+                statement.setDate(3, Date.valueOf(person.getBirthDate()));
+                statement.setLong(4, id);
+
+                statement.executeUpdate();
+
+                this.connection.commit();
+            } catch (SQLException e) {
+                try {
+                    this.connection.rollback();
+                } catch (SQLException ex) {
+                    throw new RuntimeException(ex);
+                }
+            }
+        }
     }
 
     @Override
     public void deleteById(long id) {
+        String query = "DELETE FROM persons " +
+                "WHERE id = ? ";
 
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+            this.connection.setAutoCommit(false);
+
+            statement.setLong(1, id);
+
+            statement.executeUpdate();
+
+            this.connection.commit();
+        } catch (SQLException e) {
+            try {
+                connection.rollback();
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            }
+        }
+    }
+
+    @Override
+    public void closeConnection() {
+        try {
+            this.connection.close();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

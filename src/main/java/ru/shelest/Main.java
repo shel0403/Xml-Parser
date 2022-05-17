@@ -17,6 +17,7 @@ public class Main {
 
         try {
             database.insertDistinct(xmlParser.parse());
+            database.closeConnection();
         } catch (Exception exception) {
             System.err.println(exception.getMessage());
         }
